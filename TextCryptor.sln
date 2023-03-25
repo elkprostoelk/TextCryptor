@@ -5,7 +5,7 @@ VisualStudioVersion = 17.5.33516.290
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TextCryptor.App", "TextCryptor.App\TextCryptor.App.csproj", "{D03DFCBF-3B01-4AE0-B2C1-43C18535A2B0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TextCryptor.SinglePermutation", "TextCryptor.SinglePermutation\TextCryptor.SinglePermutation.csproj", "{9749C7A7-0B00-4BB0-8C8A-626059481CFF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TextCryptor.Cryptors", "TextCryptor.SinglePermutation\TextCryptor.Cryptors.csproj", "{9749C7A7-0B00-4BB0-8C8A-626059481CFF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

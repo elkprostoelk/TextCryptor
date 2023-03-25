@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace TextCryptor.SinglePermutation
+namespace TextCryptor.Cryptors
 {
     public class SinglePermutationCryptor : ICryptor
     {

@@ -1,4 +1,4 @@
-﻿namespace TextCryptor.SinglePermutation
+﻿namespace TextCryptor.Cryptors
 {
     public interface ICryptor
     {
