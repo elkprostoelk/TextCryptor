@@ -50,7 +50,7 @@ namespace TextCryptor.Cryptors
                 }
             }
 
-            return GridToText(decryptedGrid, numRows, numColumns);
+            return GridToText(decryptedGrid, numRows, numColumns).Replace("*", "");
         }
 
         public string Encrypt(string plainText)
@@ -115,10 +115,7 @@ namespace TextCryptor.Cryptors
             {
                 for (var j = 0; j < numColumns; j++)
                 {
-                    if (grid[i, j] != '*')
-                    {
-                        text.Append(grid[i, j]);
-                    }
+                    text.Append(grid[i, j]);
                 }
             }
 
