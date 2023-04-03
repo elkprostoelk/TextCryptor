@@ -4,73 +4,88 @@ namespace TextCryptor.Cryptors
 {
     public class DoublePermutationCryptor : ICryptor
     {
-        private readonly string _key;
+        private readonly string _key1;
+        private readonly string _key2;
 
         public DoublePermutationCryptor(string key)
         {
-            _key = key;
+            _key1 = key.Split("|",
+                StringSplitOptions.RemoveEmptyEntries
+                | StringSplitOptions.TrimEntries)
+                .FirstOrDefault()
+                ?? String.Empty;
+            _key2 = key.Split("|",
+                StringSplitOptions.RemoveEmptyEntries
+                | StringSplitOptions.TrimEntries)
+                .LastOrDefault()
+                ?? String.Empty;
         }
 
         public string Decrypt(string cryptedText)
         {
-            int[] keyArr = Array.ConvertAll(_key.Split(' '), int.Parse);
+            int[] keyArr1 = Array.ConvertAll(_key1.Split(' '), int.Parse);
+            int[] keyArr2 = Array.ConvertAll(_key2.Split(' '), int.Parse);
 
-            int numColumns = keyArr.Length;
+            int numColumns = keyArr2.Length;
             int numRows = cryptedText.Length / numColumns;
-            var grid = new char[numRows, numColumns];
-            int index = 0;
+
+            var grid = TextToGrid(cryptedText, numRows, numColumns);
+
+            var swappedRowsGrid = new char[numRows, numColumns];
             for (var i = 0; i < numRows; i++)
             {
+                var newRow = keyArr1[i] - 1;
                 for (var j = 0; j < numColumns; j++)
                 {
-                    grid[i, j] = cryptedText[index];
-                    index++;
+                    swappedRowsGrid[i, j] = grid[newRow, j];
                 }
             }
-
             var decryptedGrid = new char[numRows, numColumns];
-            for (var i = 0; i < keyArr.Length; i++)
+            for (var i = 0; i < numColumns; i++)
             {
-                int oldColumnIndex = keyArr[i] - 1;
-                int newColumnIndex = i;
+                var newCol = keyArr2[i] - 1;
                 for (var j = 0; j < numRows; j++)
                 {
-                    decryptedGrid[j, newColumnIndex] = grid[j, oldColumnIndex];
+                    decryptedGrid[j, i] = swappedRowsGrid[j, newCol];
                 }
             }
 
-            for (var i = 0; i < keyArr.Length; i++)
-            {
-                int columnIndex = i;
-                var column = new char[numRows];
-                for (var j = 0; j < numRows; j++)
-                {
-                    column[j] = decryptedGrid[j, columnIndex];
-                }
-                Array.Sort(column);
-                for (var j = 0; j < numRows; j++)
-                {
-                    decryptedGrid[j, columnIndex] = column[j];
-                }
-            }
-
-            var decryptedText = new StringBuilder();
-            for (var i = 0; i < numRows; i++)
-            {
-                for (var j = 0; j < numColumns; j++)
-                {
-                    decryptedText.Append(decryptedGrid[i, j]);
-                }
-            }
-            return decryptedText.ToString();
+            return GridToText(decryptedGrid, numRows, numColumns);
         }
 
         public string Encrypt(string plainText)
         {
-            int[] keyArr = Array.ConvertAll(_key.Split(' '), int.Parse);
+            int[] keyArr1 = Array.ConvertAll(_key1.Split(' '), int.Parse);
+            int[] keyArr2 = Array.ConvertAll(_key2.Split(' '), int.Parse);
 
-            var numColumns = keyArr.Length;
-            var numRows = (int)Math.Ceiling((double)plainText.Length / numColumns);
+            int numColumns = keyArr2.Length;
+            int numRows = plainText.Length / numColumns
+                + (plainText.Length % numColumns != 0 ? 1 : 0);
+            
+            var grid = TextToGrid(plainText, numRows, numColumns);
+            var swappedColumnsGrid = new char[numRows, numColumns];
+            for (var i = 0; i < numColumns; i++)
+            {
+                var newColumn = keyArr2[i] - 1;
+                for (var j = 0; j < numRows; j++)
+                {
+                    swappedColumnsGrid[j, newColumn] = grid[j, i];
+                }
+            }
+            var encryptedGrid = new char[numRows, numColumns];
+            for (var i = 0; i < numRows; i++)
+            {
+                var newRow = keyArr1[i] - 1;
+                for (var j = 0; j < numColumns; j++)
+                {
+                    encryptedGrid[newRow, j] = swappedColumnsGrid[i, j];
+                }
+            }
+            return GridToText(encryptedGrid, numRows, numColumns);
+        }
+
+        private static char[,] TextToGrid(string text, int numRows, int numColumns)
+        {
             var grid = new char[numRows, numColumns];
 
             int index = 0;
@@ -78,53 +93,36 @@ namespace TextCryptor.Cryptors
             {
                 for (var j = 0; j < numColumns; j++)
                 {
-                    if (index < plainText.Length)
+                    if (index < text.Length)
                     {
-                        grid[i, j] = plainText[index];
+                        grid[i, j] = text[index];
                         index++;
                     }
                     else
                     {
-                        grid[i, j] = (char)new Random().Next(65, 91);
+                        grid[i, j] = '*';
                     }
                 }
             }
 
-            for (int i = 0; i < keyArr.Length; i++)
-            {
-                int columnIndex = keyArr[i] - 1;
-                var column = new char[numRows];
-                for (var j = 0; j < numRows; j++)
-                {
-                    column[j] = grid[j, columnIndex];
-                }
-                Array.Sort(column);
-                for (var j = 0; j < numRows; j++)
-                {
-                    grid[j, columnIndex] = column[j];
-                }
-            }
+            return grid;
+        }
 
-            var encryptedGrid = new char[numRows, numColumns];
-            for (int i = 0; i < keyArr.Length; i++)
-            {
-                int oldColumnIndex = i;
-                int newColumnIndex = keyArr[i] - 1;
-                for (var j = 0; j < numRows; j++)
-                {
-                    encryptedGrid[j, newColumnIndex] = grid[j, oldColumnIndex];
-                }
-            }
-
-            var encryptedText = new StringBuilder();
-            for (int i = 0; i < numRows; i++)
+        private static string GridToText(char[,] grid, int numRows, int numColumns)
+        {
+            var text = new StringBuilder();
+            for (var i = 0; i < numRows; i++)
             {
                 for (var j = 0; j < numColumns; j++)
                 {
-                    encryptedText.Append(encryptedGrid[i, j]);
+                    if (grid[i, j] != '*')
+                    {
+                        text.Append(grid[i, j]);
+                    }
                 }
             }
-            return encryptedText.ToString();
+
+            return text.ToString();
         }
     }
 }
